@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proxyman Script Generator</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1e1e1e;
+      color: #fff;
+      padding: 20px;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    h1 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #4fc3f7;
+    }
+    .container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    label {
+      font-size: 13px;
+      color: #aaa;
+    }
+    textarea {
+      flex: 1;
+      background: #2d2d2d;
+      border: 1px solid #444;
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 13px;
+      padding: 12px;
+      resize: none;
+    }
+    textarea:focus {
+      outline: none;
+      border-color: #4fc3f7;
+    }
+    textarea::placeholder {
+      color: #666;
+    }
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .btn-copy {
+      background: #4fc3f7;
+      color: #1e1e1e;
+    }
+    .btn-clear {
+      background: #424242;
+      color: #fff;
+    }
+    #output {
+      flex: 1;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #b5b5b5;
+      font-family: 'Monaco', 'Menlo', monospace;
+      font-size: 12px;
+      padding: 12px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+      display: none;
+    }
+    #output.show {
+      display: block;
+    }
+    #error {
+      color: #ff5252;
+      font-size: 13px;
+      padding: 8px 12px;
+      background: #2d1f1f;
+      border-radius: 6px;
+      display: none;
+    }
+    #error.show {
+      display: block;
+    }
+    .success {
+      color: #69f0ae;
+      font-size: 13px;
+      padding: 8px 12px;
+      background: #1f2d1f;
+      border-radius: 6px;
+      display: none;
+    }
+    .success.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Proxyman Script Generator</h1>
+  <div class="container">
+    <label>Paste JSON response day du:</label>
+    <textarea id="input" placeholder='{"message":"","status":200,"data":[...]}'></textarea>
+    <div id="error"></div>
+    <div id="success"></div>
+    <div class="btn-group">
+      <button class="btn-clear" onclick="clearAll()">Clear</button>
+      <button class="btn-copy" onclick="generate()">Generate</button>
+    </div>
+    <label>Script Output:</label>
+    <div id="output"></div>
+    <div class="btn-group">
+      <button class="btn-copy" onclick="copyOutput()">Copy Script</button>
+    </div>
+  </div>
+
+  <script>
+    function generateScript(responseObj) {
+      const script = `console.log("🔥 SCRIPT LOADED");
+
+sharedState.savedResponse = null;
+
+async function onRequest(context, url, request) {
+  console.log("➡️ onRequest:", url);
+
+  if (sharedState.savedResponse?.data) {
+    request.headers["X-Debug"] = "From-Proxyman";
+  }
+
+  return request;
+}
+
+async function onResponse(context, url, request, response) {
+  console.log("⬅️ onResponse:", url);
+  console.log("Status:", response.statusCode);
+
+  const MOCK_RESPONSE = ${JSON.stringify(responseObj, null, 4)};
+
+  // ✅ FORCE override response
+  response.headers["Content-Type"] = "application/json";
+  response.body = MOCK_RESPONSE;
+
+  sharedState.savedResponse = MOCK_RESPONSE;
+
+  console.log("✅ RESPONSE OVERRIDDEN");
+
+  return response;
+}`;
+      return script;
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error');
+      el.textContent = msg;
+      el.classList.add('show');
+    }
+
+    function hideError() {
+      document.getElementById('error').classList.remove('show');
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById('success');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    function generate() {
+      hideError();
+      const input = document.getElementById('input').value;
+
+      if (!input.trim()) {
+        showError('Vui long paste JSON vao!');
+        return;
+      }
+
+      let json;
+      try {
+        json = JSON.parse(input);
+      } catch (e) {
+        showError('JSON khong hop le: ' + e.message);
+        return;
+      }
+
+      const script = generateScript(json);
+      const output = document.getElementById('output');
+      output.textContent = script;
+      output.classList.add('show');
+      showSuccess('Da tao script!');
+    }
+
+    function copyOutput() {
+      const output = document.getElementById('output').textContent;
+      if (!output) {
+        showError('Chua co script de copy');
+        return;
+      }
+      navigator.clipboard.writeText(output).then(() => {
+        showSuccess('Da copy!');
+      }).catch(() => {
+        showError('Copy that bai');
+      });
+    }
+
+    function clearAll() {
+      document.getElementById('input').value = '';
+      document.getElementById('output').textContent = '';
+      document.getElementById('output').classList.remove('show');
+      hideError();
+    }
+  </script>
+</body>
+</html>

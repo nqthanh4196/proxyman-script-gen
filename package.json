@@ -1,0 +1,19 @@
+{
+  "name": "proxyman-script-gen",
+  "version": "1.0.0",
+  "description": "Generate Proxyman mock scripts from JSON",
+  "main": "main.js",
+  "bin": {
+    "proxyman": "./cli.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "link": "npm link"
+  },
+  "keywords": ["proxyman", "electron", "mock"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "electron": "^41.7.0"
+  }
+}
