@@ -1,29 +1,35 @@
 # Proxyman Script Generator
 
-Tool tao Proxyman mock script tu JSON response.
+Generate Proxyman mock response scripts from JSON.
 
-## Bang lenh
+## Setup
 
 ```bash
-# Chay app
+cd proxyman-script-gen-app
+npm install
+```
+
+## Commands
+
+```bash
+# Run app
 proxyman --open
 
-# Hoac su dung npm
-cd proxyman-script-gen-app
+# Or use npm
 npm start
 ```
 
-## Cach su dung
+## Usage
 
-1. Copy JSON response can mock
-2. Paste vao o nhap lieu ben trai
-3. Bam **Generate** de tao script
-4. Bam **Copy Script** de copy sang clipboard
-5. Paste vao Proxyman (Menu > Scripts > Add Script)
+1. Copy the API response JSON you want to mock
+2. Paste into the input field on the left
+3. Click **Generate** to create the script
+4. Click **Copy Script** to copy to clipboard
+5. Paste into Proxyman (Menu > Scripts > Add Script)
 
-## Vi du
+## Example
 
-JSON dau vao:
+Input JSON:
 ```json
 {
   "message": "",
@@ -37,7 +43,7 @@ JSON dau vao:
 }
 ```
 
-Script dau ra:
+Output script:
 ```javascript
 console.log("🔥 SCRIPT LOADED");
 
@@ -54,7 +60,76 @@ async function onResponse(context, url, request, response) {
 }
 ```
 
-## Yeu cau
+## Requirements
 
 - Node.js >= 18
-- Electron (da duoc install qua npm)
+- Electron (installed via npm)
+
+---
+
+# Proxyman Script Generator
+
+Tool tạo Proxyman mock response script từ JSON.
+
+## Cài đặt
+
+```bash
+cd proxyman-script-gen-app
+npm install
+```
+
+## Bang lệnh
+
+```bash
+# Chạy app
+proxyman --open
+
+# Hoặc dùng npm
+npm start
+```
+
+## Cách sử dụng
+
+1. Copy JSON response cần mock
+2. Paste vào ô nhập liệu bên trái
+3. Bấm **Generate** để tạo script
+4. Bấm **Copy Script** để copy sang clipboard
+5. Paste vào Proxyman (Menu > Scripts > Add Script)
+
+## Ví dụ
+
+JSON đầu vào:
+```json
+{
+  "message": "",
+  "status": 200,
+  "data": [
+    {
+      "voucher_id": 1,
+      "gift_code": "ABC123"
+    }
+  ]
+}
+```
+
+Script đầu ra:
+```javascript
+console.log("🔥 SCRIPT LOADED");
+
+sharedState.savedResponse = null;
+
+async function onRequest(context, url, request) {
+  // ...
+}
+
+async function onResponse(context, url, request, response) {
+  const MOCK_RESPONSE = { ... };
+  response.body = MOCK_RESPONSE;
+  return response;
+}
+```
+
+## Yêu cầu
+
+- Node.js >= 18
+- Electron (đã được cài qua npm)
